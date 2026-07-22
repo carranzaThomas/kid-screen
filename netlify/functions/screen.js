@@ -1,9 +1,9 @@
 // Serverless proxy: holds your Google Gemini key server-side and returns a content advisory.
 // FREE tier: get a key at https://aistudio.google.com/apikey  (no credit card, cannot rack up charges).
 // Set GEMINI_API_KEY in Netlify > Site configuration > Environment variables.
-// Optional: GEMINI_MODEL (defaults to gemini-2.5-flash).
+// Optional: GEMINI_MODEL (defaults to gemini-flash-latest, the current free Flash model).
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 
 const SCHEMA = {
   type: "OBJECT",
@@ -66,7 +66,7 @@ Rules: level is 0 (none) to 4 (intense). verdict "safe" if broadly fine for the 
           responseMimeType: "application/json",
           responseSchema: SCHEMA,
           temperature: 0.4,
-          maxOutputTokens: 1500
+          maxOutputTokens: 8192
         }
       })
     });
@@ -87,9 +87,13 @@ Rules: level is 0 (none) to 4 (intense). verdict "safe" if broadly fine for the 
       return json(502, { error: "The response was blocked by a content filter for this title." });
     }
 
-    const text = ((cand.content && cand.content.parts) || []).map(p => p.text || "").join("");
+    const parts = (cand.content && cand.content.parts) || [];
+    const text = parts.filter(p => !p.thought).map(p => p.text || "").join("");
     const parsed = extractJSON(text);
-    if (!parsed) return json(502, { error: "Got a response but could not read it. Try again." });
+    if (!parsed) {
+      const fr = cand.finishReason || "unknown";
+      return json(502, { error: "Couldn't read the response (finish: " + fr + ", " + text.length + " chars). Try again." });
+    }
     return json(200, parsed);
   } catch (e) {
     return json(502, { error: "Request failed: " + (e.message || "unknown error") });
