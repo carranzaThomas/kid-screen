@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kid-Screen · Watch-First Advisory</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap');
+  :root{
+    --ink:#182029; --ink-2:#212C38; --paper:#FAF7F1; --paper-line:#ECE6DA;
+    --text:#EAF0F4; --muted:#8A97A5; --text-dark:#25303B; --muted-dark:#6D7B88;
+    --safe:#3E9E86; --caution:#E3A24A; --preview:#C85E56;
+    --accent:#6E9BC5; --shadow:0 18px 50px -20px rgba(0,0,0,.55);
+    --display:'Bricolage Grotesque', system-ui, sans-serif;
+    --body:'Inter', system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{font-family:var(--body); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased;
+    background:radial-gradient(1100px 600px at 78% -8%, #26384a 0%, transparent 55%),radial-gradient(900px 500px at 0% 110%, #20303f 0%, transparent 50%),var(--ink);}
+  .wrap{max-width:920px;margin:0 auto;padding:44px 22px 80px;}
+  .eyebrow{font-weight:600;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin:0 0 12px;}
+  h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,6vw,54px);line-height:.98;letter-spacing:-.02em;margin:0 0 14px;}
+  h1 .soft{color:var(--muted);font-weight:400;}
+  .sub{color:var(--muted);font-size:15.5px;line-height:1.55;max-width:58ch;margin:0;}
+  .console{background:linear-gradient(180deg,var(--ink-2),var(--ink));border:1px solid #33414f;border-radius:20px;padding:22px;margin:30px 0 12px;box-shadow:var(--shadow);}
+  .row{display:flex;gap:12px;flex-wrap:wrap;}
+  .field{flex:1 1 260px;display:flex;flex-direction:column;gap:7px;} .field.small{flex:0 1 130px;}
+  label.lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+  input[type=text]{background:#0F161D;border:1px solid #34424f;color:var(--text);font-family:var(--body);font-size:16px;padding:13px 14px;border-radius:12px;outline:none;transition:border-color .15s,box-shadow .15s;width:100%;}
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,155,197,.22);}
+  .ages{display:flex;gap:8px;flex-wrap:wrap;}
+  .age-chip{border:1px solid #3a4856;background:#0F161D;color:var(--muted);padding:8px 13px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;transition:all .14s;font-family:var(--body);}
+  .age-chip:hover{border-color:var(--accent);color:var(--text);}
+  .age-chip.on{background:var(--accent);border-color:var(--accent);color:#0d1620;font-weight:600;}
+  .go{margin-top:6px;background:var(--accent);color:#0d1620;border:none;font-family:var(--display);font-weight:700;font-size:16px;padding:14px 26px;border-radius:12px;cursor:pointer;transition:transform .1s,background .14s;}
+  .go:hover{background:#82abd0;} .go:active{transform:translateY(1px);} .go:disabled{opacity:.5;cursor:not-allowed;}
+  .disclaimer{font-size:12.5px;color:var(--muted);line-height:1.5;margin:14px 2px 0;border-left:2px solid #3a4856;padding-left:12px;}
+  .loading{display:none;align-items:center;gap:14px;padding:26px 4px;color:var(--muted);} .loading.on{display:flex;}
+  .spinner{width:22px;height:22px;border-radius:50%;border:2.5px solid #33414f;border-top-color:var(--accent);animation:spin .8s linear infinite;flex:none;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .errbox{display:none;background:rgba(200,94,86,.1);border:1px solid rgba(200,94,86,.4);color:#f0a49d;border-radius:14px;padding:16px 18px;margin-top:22px;font-size:14px;line-height:1.55;} .errbox.on{display:block;} .errbox b{color:#f6bbb5;}
+  #result{display:none;margin-top:26px;} #result.on{display:block;}
+  .verdict-card{background:var(--paper);color:var(--text-dark);border-radius:20px;padding:26px 26px 22px;box-shadow:var(--shadow);}
+  .vtop{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;}
+  .vtitle{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.05;letter-spacing:-.015em;margin:0;}
+  .vmeta{color:var(--muted-dark);font-size:13.5px;margin:5px 0 0;}
+  .signal{display:flex;gap:10px;align-items:center;}
+  .lamp{display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.28;transition:opacity .3s;}
+  .lamp .dot{width:22px;height:22px;border-radius:50%;background:#c9c2b4;}
+  .lamp .tag{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--muted-dark);}
+  .lamp.safe .dot{background:var(--safe);} .lamp.caution .dot{background:var(--caution);} .lamp.preview .dot{background:var(--preview);}
+  .lamp.active{opacity:1;} .lamp.active .dot{box-shadow:0 0 0 5px rgba(0,0,0,.06);animation:pulse 2.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.09);}}
+  .verdict-line{margin:18px 0 2px;font-size:17px;line-height:1.5;font-weight:500;} .verdict-line b{font-family:var(--display);font-weight:800;}
+  .age-line{font-size:14px;color:var(--muted-dark);margin:8px 0 0;line-height:1.5;}
+  .cats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px;} @media(max-width:620px){.cats{grid-template-columns:1fr;}}
+  .cat{background:var(--ink-2);border:1px solid #33414f;border-radius:14px;padding:15px 16px;}
+  .cat-head{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .cat-name{font-weight:600;font-size:14px;display:flex;gap:8px;align-items:center;} .cat-ico{font-size:15px;}
+  .level-pill{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:999px;}
+  .lv0,.lv1{background:rgba(62,158,134,.18);color:#7fd0bb;} .lv2{background:rgba(227,162,74,.2);color:#f0c27f;}
+  .lv3{background:rgba(200,94,86,.2);color:#e79790;} .lv4{background:rgba(200,94,86,.28);color:#f0a49d;}
+  .dots{display:flex;gap:4px;margin:11px 0 0;}
+  .pip{width:9px;height:9px;border-radius:50%;background:#33414f;}
+  .pip.f{background:var(--accent);} .pip.f.warn{background:var(--caution);} .pip.f.hot{background:var(--preview);}
+  .cat-note{font-size:13px;color:var(--muted);line-height:1.5;margin:11px 0 0;}
+  .moments{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;}
+  .moments li{font-size:12px;color:#b9c4cf;background:#0F161D;border:1px solid #2c3946;border-radius:8px;padding:6px 9px;line-height:1.4;}
+  .moments li b{color:var(--accent);font-family:var(--body);font-weight:600;}
+  .card-actions{display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap;}
+  .save{background:var(--text-dark);color:#fff;border:none;font-family:var(--display);font-weight:700;font-size:14px;padding:11px 20px;border-radius:10px;cursor:pointer;transition:background .14s;} .save:hover{background:#0f1720;}
+  .saved-flash{color:var(--safe);font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;} .saved-flash.on{opacity:1;}
+  .links{margin-top:26px;}
+  .links h3{font-family:var(--display);font-weight:700;font-size:15px;margin:0 0 4px;}
+  .links p{font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.5;} .links p b{color:var(--text);}
+  .link-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;} @media(max-width:620px){.link-grid{grid-template-columns:1fr;}}
+  a.linkcard{display:block;text-decoration:none;color:var(--text);background:var(--ink-2);border:1px solid #33414f;border-radius:12px;padding:14px 15px;transition:border-color .14s,transform .1s;}
+  a.linkcard:hover{border-color:var(--accent);transform:translateY(-2px);}
+  a.linkcard .lc-name{font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;} a.linkcard .lc-name .arr{color:var(--accent);}
+  a.linkcard .lc-desc{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.45;}
+  .vault{margin-top:34px;}
+  .vault h3{font-family:var(--display);font-weight:700;font-size:16px;margin:0 0 12px;display:flex;align-items:center;gap:10px;}
+  .vault h3 .count{font-family:var(--body);font-size:12px;font-weight:600;color:var(--muted);background:var(--ink-2);border:1px solid #33414f;padding:2px 9px;border-radius:999px;}
+  .vault-empty{font-size:13.5px;color:var(--muted);line-height:1.5;background:var(--ink-2);border:1px dashed #3a4856;border-radius:12px;padding:18px;}
+  .vlist{display:flex;flex-direction:column;gap:8px;}
+  .vitem{display:flex;align-items:center;gap:12px;background:var(--ink-2);border:1px solid #33414f;border-radius:12px;padding:12px 14px;transition:border-color .14s;} .vitem:hover{border-color:var(--accent);}
+  .vdot{width:12px;height:12px;border-radius:50%;flex:none;} .vdot.safe{background:var(--safe);} .vdot.caution{background:var(--caution);} .vdot.preview{background:var(--preview);}
+  .vinfo{flex:1 1 auto;min-width:0;} .vinfo .vt{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} .vinfo .vs{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .vbtn{background:none;border:1px solid #3a4856;color:var(--muted);font-family:var(--body);font-size:12px;padding:6px 11px;border-radius:8px;cursor:pointer;flex:none;transition:all .12s;} .vbtn:hover{border-color:var(--accent);color:var(--text);} .vbtn.del:hover{border-color:var(--preview);color:#f0a49d;}
+  .foot{margin-top:34px;font-size:12px;color:var(--muted);line-height:1.6;text-align:center;}
+  @media(prefers-reduced-motion:reduce){.spinner{animation:none;}.lamp.active .dot{animation:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Watch-first advisory</p>
+  <h1>Kid-Screen<span class="soft">.</span></h1>
+  <p class="sub">Type a movie or show. It reads back what a small kid would run into, flags the intense moments, and saves your vetted titles. No watching it first.</p>
+
+  <div class="console">
+    <div class="row">
+      <div class="field">
+        <label class="lbl" for="title">Title</label>
+        <input type="text" id="title" placeholder="e.g. Moana, Bluey, The Lion King" autocomplete="off">
+      </div>
+      <div class="field small">
+        <label class="lbl" for="year">Year (optional)</label>
+        <input type="text" id="year" placeholder="1994" autocomplete="off" inputmode="numeric">
+      </div>
+    </div>
+    <div class="field" style="margin-top:16px;">
+      <label class="lbl">Screening for</label>
+      <div class="ages" id="ages">
+        <button class="age-chip on" data-age="a toddler around 2 years old" data-short="Toddler (~2)">Toddler (~2)</button>
+        <button class="age-chip" data-age="a preschooler 3 to 5 years old" data-short="Preschool (3–5)">Preschool (3–5)</button>
+        <button class="age-chip" data-age="an early-elementary child 6 to 8 years old" data-short="Early elem. (6–8)">Early elem. (6–8)</button>
+      </div>
+    </div>
+    <button class="go" id="go">Screen it</button>
+    <p class="disclaimer">Reliable on mainstream titles, thinner on obscure ones (it says so when unsure). Any scene times are a starting point. For frame-accurate skip points, use the Does the Dog Die link on the results.</p>
+  </div>
+
+  <div class="loading" id="loading"><div class="spinner"></div><div id="loadmsg">Screening the reel…</div></div>
+  <div class="errbox" id="errbox"></div>
+
+  <div id="result">
+    <div class="verdict-card">
+      <div class="vtop">
+        <div><h2 class="vtitle" id="rTitle">—</h2><p class="vmeta" id="rMeta"></p></div>
+        <div class="signal" id="signal">
+          <div class="lamp safe" data-v="safe"><div class="dot"></div><div class="tag">Go</div></div>
+          <div class="lamp caution" data-v="caution"><div class="dot"></div><div class="tag">Caution</div></div>
+          <div class="lamp preview" data-v="preview"><div class="dot"></div><div class="tag">Preview</div></div>
+        </div>
+      </div>
+      <p class="verdict-line" id="rVerdict"></p>
+      <p class="age-line" id="rAge"></p>
+      <div class="cats" id="cats"></div>
+      <div class="card-actions">
+        <button class="save" id="save">Save to vetted list</button>
+        <span class="saved-flash" id="flash">Saved.</span>
+      </div>
+    </div>
+    <div class="links">
+      <h3>Verify timestamps</h3>
+      <p><b>Does the Dog Die</b> for community-checked jump-scare timestamps, <b>Common Sense Media</b> for the age lens, <b>IMDb Parents Guide</b> for scene notes.</p>
+      <div class="link-grid" id="linkgrid"></div>
+    </div>
+  </div>
+
+  <div class="vault">
+    <h3>Cleared to watch <span class="count" id="vcount">0</span></h3>
+    <div id="vaultbody"></div>
+  </div>
+
+  <p class="foot">Conservative by design: when in doubt it flags. You know your kid better than any database.</p>
+</div>
+
+<script>
+const CATS = [
+  {key:"scary",label:"Scary & startling",ico:"😱"},
+  {key:"peril",label:"Peril & violence",ico:"⚔️"},
+  {key:"death",label:"Death & separation",ico:"💔"},
+  {key:"themes",label:"Sad / intense themes",ico:"🌧️"},
+  {key:"sexual",label:"Sexual content",ico:"💋"},
+  {key:"language",label:"Language",ico:"🗣️"},
+  {key:"substances",label:"Substances",ico:"🍷"}
+];
+const LVL = ["None","Mild","Moderate","Strong","Intense"];
+const STORE_KEY = "kidscreen.vetted.v2";
+let selectedAge = "a toddler around 2 years old";
+let selectedShort = "Toddler (~2)";
+let lastAdvisory = null;
+
+document.getElementById('ages').addEventListener('click', e=>{
+  const chip = e.target.closest('.age-chip'); if(!chip) return;
+  document.querySelectorAll('.age-chip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on'); selectedAge = chip.dataset.age; selectedShort = chip.dataset.short;
+});
+document.getElementById('title').addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+document.getElementById('year').addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+document.getElementById('go').addEventListener('click',run);
+document.getElementById('save').addEventListener('click',saveCurrent);
+
+function loadVault(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||"[]");}catch(_){return [];}}
+function saveVault(v){try{localStorage.setItem(STORE_KEY,JSON.stringify(v));}catch(_){}}
+
+const loadMsgs=["Screening the reel…","Reading the parent guides…","Flagging the intense bits…","Almost done…"];
+function setLoading(on){
+  const l=document.getElementById('loading'),g=document.getElementById('go');
+  l.classList.toggle('on',on); g.disabled=on;
+  if(on){let i=0;document.getElementById('loadmsg').textContent=loadMsgs[0];
+    l._t=setInterval(()=>{i=(i+1)%loadMsgs.length;document.getElementById('loadmsg').textContent=loadMsgs[i];},1600);
+  } else if(l._t){clearInterval(l._t);l._t=null;}
+}
+
+function buildLinks(title,year){
+  const q=encodeURIComponent((title+(year?" "+year:"")).trim());
+  const links=[
+    {name:"Does the Dog Die",desc:"Jump-scare & trigger timestamps.",url:`https://www.google.com/search?q=${q}+site:doesthedogdie.com`},
+    {name:"Common Sense Media",desc:"Age rating + category breakdown.",url:`https://www.commonsensemedia.org/search/${q}`},
+    {name:"IMDb Parents Guide",desc:"Community scene notes.",url:`https://www.google.com/search?q=${q}+imdb+parents+guide`}
+  ];
+  document.getElementById('linkgrid').innerHTML=links.map(l=>`
+    <a class="linkcard" href="${l.url}" target="_blank" rel="noopener">
+      <span class="lc-name">${l.name} <span class="arr">↗</span></span>
+      <span class="lc-desc">${l.desc}</span></a>`).join('');
+}
+
+async function run(){
+  const title=document.getElementById('title').value.trim();
+  const year=document.getElementById('year').value.trim();
+  if(!title){document.getElementById('title').focus();return;}
+  document.getElementById('errbox').classList.remove('on');
+  document.getElementById('result').classList.remove('on');
+  setLoading(true);
+  try{
+    const resp=await fetch("/.netlify/functions/screen",{
+      method:"POST",headers:{"content-type":"application/json"},
+      body:JSON.stringify({title,year,age:selectedAge})
+    });
+    const raw=await resp.text();
+    let data=null; try{ data=raw?JSON.parse(raw):null; }catch(_){ data=null; }
+    if(!data){
+      if(resp.status===404) throw new Error("The screening function wasn't found (404). Check that it deployed.");
+      throw new Error("The function returned an empty response (HTTP "+resp.status+"). It likely isn't deployed or crashed on startup.");
+    }
+    if(!resp.ok||data.error){throw new Error(data.error||("HTTP "+resp.status));}
+    render(data,title,year);
+  }catch(err){
+    showError(err.message,title,year);
+  }finally{setLoading(false);}
+}
+
+function showError(msg,title,year){
+  document.getElementById('errbox').innerHTML=`<b>Screening didn't complete.</b> ${escHtml(msg)}<br>The verify links below still work.`;
+  document.getElementById('errbox').classList.add('on');
+  document.getElementById('rTitle').textContent=title||"—";
+  document.getElementById('rMeta').textContent="";
+  document.getElementById('rVerdict').textContent="";
+  document.getElementById('rAge').textContent="";
+  document.getElementById('cats').innerHTML="";
+  document.getElementById('signal').querySelectorAll('.lamp').forEach(x=>x.classList.remove('active'));
+  buildLinks(title,year);
+  lastAdvisory=null;
+  document.getElementById('result').classList.add('on');
+}
+
+function render(d,titleFallback,yearFallback){
+  const title=d.title||titleFallback, year=d.year||yearFallback||"";
+  lastAdvisory={title,year,age:selectedShort,data:d};
+  document.getElementById('rTitle').textContent=title;
+  let meta=[]; if(year)meta.push(year); meta.push("Screened for "+ageLabel());
+  if(d.identified===false)meta.push("⚠ title not confidently identified — verify below");
+  document.getElementById('rMeta').textContent=meta.join("  ·  ");
+  const v=["safe","caution","preview"].includes(d.verdict)?d.verdict:"caution";
+  document.getElementById('signal').querySelectorAll('.lamp').forEach(l=>l.classList.toggle('active',l.dataset.v===v));
+  const vword={safe:"Good to go",caution:"Watch with them",preview:"Preview first"}[v];
+  document.getElementById('rVerdict').innerHTML=`<b>${vword}.</b> ${escHtml(d.verdict_reason||"")}`;
+  document.getElementById('rAge').textContent=d.age_note||"";
+  const byKey={}; (d.categories||[]).forEach(c=>{if(c&&c.key)byKey[c.key]=c;});
+  document.getElementById('cats').innerHTML=CATS.map(m=>{
+    const c=byKey[m.key]||{level:0,note:"No notable content.",moments:[]};
+    const lv=Math.max(0,Math.min(4,parseInt(c.level)||0));
+    const tone=lv>=3?"hot":lv===2?"warn":"";
+    const pips=[0,1,2,3].map(i=>`<span class="pip ${i<lv?'f '+tone:''}"></span>`).join("");
+    const moments=(c.moments||[]).filter(Boolean).slice(0,3).map(mm=>{
+      const html=escHtml(mm).replace(/(~?\s?\d+\s?(?:min|:\d\d)[^:]*:)/i,'<b>$1</b>');
+      return `<li>${html}</li>`;
+    }).join("");
+    return `<div class="cat"><div class="cat-head">
+      <span class="cat-name"><span class="cat-ico">${m.ico}</span>${m.label}</span>
+      <span class="level-pill lv${lv}">${LVL[lv]}</span></div>
+      <div class="dots">${pips}</div>
+      <div class="cat-note">${escHtml(c.note||"")}</div>
+      ${moments?`<ul class="moments">${moments}</ul>`:""}</div>`;
+  }).join("");
+  buildLinks(title,year);
+  document.getElementById('flash').classList.remove('on');
+  document.getElementById('result').classList.add('on');
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function saveCurrent(){
+  if(!lastAdvisory)return;
+  const {title,year,data}=lastAdvisory;
+  const verdict=["safe","caution","preview"].includes(data.verdict)?data.verdict:"caution";
+  const vault=loadVault().filter(x=>!(x.title===title&&x.age===selectedShort));
+  vault.unshift({id:Date.now(),title,year,age:selectedShort,verdict,advisory:data,savedAt:new Date().toISOString()});
+  saveVault(vault); renderVault();
+  const f=document.getElementById('flash'); f.classList.add('on'); setTimeout(()=>f.classList.remove('on'),1800);
+}
+
+function renderVault(){
+  const vault=loadVault();
+  document.getElementById('vcount').textContent=vault.length;
+  const body=document.getElementById('vaultbody');
+  if(!vault.length){body.innerHTML=`<div class="vault-empty">Nothing vetted yet. Screen a title and hit save. It'll live here so you never re-check the same movie twice.</div>`;return;}
+  const vword={safe:"Good to go",caution:"Watch with them",preview:"Preview first"};
+  body.innerHTML=`<div class="vlist">`+vault.map(v=>`
+    <div class="vitem">
+      <span class="vdot ${v.verdict}"></span>
+      <div class="vinfo"><div class="vt">${escHtml(v.title)}${v.year?' <span style="color:var(--muted);font-weight:400;">('+escHtml(v.year)+')</span>':''}</div>
+      <div class="vs">${vword[v.verdict]} · ${escHtml(v.age)} · ${new Date(v.savedAt).toLocaleDateString()}</div></div>
+      <button class="vbtn open" data-id="${v.id}">Open</button>
+      <button class="vbtn del" data-id="${v.id}">Remove</button>
+    </div>`).join('')+`</div>`;
+  body.querySelectorAll('.vbtn.open').forEach(b=>b.addEventListener('click',()=>reopen(+b.dataset.id)));
+  body.querySelectorAll('.vbtn.del').forEach(b=>b.addEventListener('click',()=>{saveVault(loadVault().filter(x=>x.id!==+b.dataset.id));renderVault();}));
+}
+
+function reopen(id){
+  const v=loadVault().find(x=>x.id===id); if(!v)return;
+  document.getElementById('title').value=v.title;
+  document.getElementById('year').value=v.year||'';
+  const chip=[...document.querySelectorAll('.age-chip')].find(c=>c.dataset.short===v.age);
+  if(chip){document.querySelectorAll('.age-chip').forEach(c=>c.classList.remove('on'));chip.classList.add('on');selectedAge=chip.dataset.age;selectedShort=chip.dataset.short;}
+  render(v.advisory,v.title,v.year);
+}
+
+function ageLabel(){
+  if(selectedAge.includes("toddler"))return "a toddler (~2)";
+  if(selectedAge.includes("preschool"))return "a preschooler (3–5)";
+  return "an early-elementary child (6–8)";
+}
+function escHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+renderVault();
+</script>
+</body>
+  </html>
